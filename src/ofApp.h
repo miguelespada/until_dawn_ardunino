@@ -2,42 +2,67 @@
 
 #include "ofMain.h"
 #include "ofxOsc.h"
+#include "ofxJSON.h"
 
+#define ARDUINO_BAUD_RATE 57600
+#define ARDUINO_PORT_NAME "tty.usbmodem"
 
-
-
-#define HOST_0 "localhost"
+#define HOST_0 "192.168.1.42"
 #define PORT_0 12350
+#define PORT_1 12351
+
+
+#define DATABUFFERSIZE 25   // needs to be big enough to hold the incomming messages
+
+#define IN_DATA_TIMEOUT 2   // how long to wait until requesting more data from arduino
+
+enum SensorType {
+    SENSOR_TEMPERATURE = 0,
+    SENSOR_CONDUCTANCE,
+    SENSOR_VOLTAGE,
+    SENSOR_HEARTBEAT
+};
+
 
 class ofApp : public ofBaseApp{
 
-	public:
-		void setup();
-		void update();
-		void draw();
+public:
+    void setup();
+    void update();
+    void draw();
 
-		void keyPressed(int key);
-		void keyReleased(int key);
-		void mouseMoved(int x, int y );
-		void mouseDragged(int x, int y, int button);
-		void mousePressed(int x, int y, int button);
-		void mouseReleased(int x, int y, int button);
-		void windowResized(int w, int h);
-		void dragEvent(ofDragInfo dragInfo);
-		void gotMessage(ofMessage msg);
+    void keyPressed(int key);
+    void keyReleased(int key);
+    void mouseMoved(int x, int y );
+    void mouseDragged(int x, int y, int button);
+    void mousePressed(int x, int y, int button);
+    void mouseReleased(int x, int y, int button);
+    void windowResized(int w, int h);
+    void dragEvent(ofDragInfo dragInfo);
+    void gotMessage(ofMessage msg);
     
-    bool		bSendSerialMessage;			// a flag for sending serial
-    char		bytesRead[3];				// data from serial, we will be trying to read 3
-    char		bytesReadString[4];			// a string needs a null terminator, so we need 3 + 1 bytes
-    int			nBytesRead;					// how much did we read?
-    int			nTimesRead;					// how many times did we read?
-    float		readTime;					// when did we last read?
+    ofSerial serial;
     
-    ofSerial	serial;
+    char buffer[DATABUFFERSIZE];
+    int bufferIndex;
+    char startChar;
+    char endChar;
+    bool storeString;
     
-    ofTrueTypeFont		font;
+    bool getSerialString();
     
-
+    // arduino serial hot plugging
+    int isArduinoPortFound();
+    bool isArduinoConnected;
+    
+    // request more data from arduino
+    void sendArduinoDataRequest();
+    float timer;
+    
+    
+    int sensorValues[4];
+    
     
     ofxOscSender sender;
+    ofxOscReceiver receiver;
 };
